@@ -1,0 +1,91 @@
+---
+title: "porfolio 2"
+name: "Keyu Wu”
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### 1. Load Dataset and Overview of data
+
+```{r data}
+COVID19 <- read.csv("~/Desktop/R lab/keyu-porfolio-2/COVID19_line_list_data.csv")
+View(COVID19)
+library(tidyverse)
+library(dplyr)
+```
+
+#the dataset is imported from Kaggle: https://www.kaggle.com/sudalairajkumar/novel-corona-virus-2019-dataset/version/25
+
+```{r overview}
+glimpse(COVID19)
+```
+
+### 2. Are most cases reported from China？
+
+```{r clean_up_data}
+COVID19$death_clean <- as.integer(COVID19$death != 0)
+```
+
+```{r china_cases}
+china_cases <- COVID19 %>% 
+  filter(country == "China")
+```
+
+```{r other_cases}
+other_cases <- COVID19 %>% 
+  filter(country != "China")
+```
+
+"as shown in the data, there are only 197 cases reported from China whereas there are 888 cases reported outside of China."
+
+```{r}
+covid_china <- COVID19 %>% 
+  mutate(country_china = if_else (country == "China", "China", "Other"))
+```
+
+```{r}
+covid_china %>%
+  ggplot(covid_china,
+         mapping = aes(x= country_china)) +
+  geom_bar() +
+  labs (
+  x = "country_china",
+  y = "count",
+  title = "whether most covid cases are reported from China"
+  )
+```
+
+### 3. 
+
+```{r}
+china_cases %>%
+  ggplot(china_cases,
+         mapping = aes(x= country,
+                       fill = from.Wuhan)) +
+  geom_bar() +
+  labs (
+  x = "country_china",
+  y = "count",
+  title = "whether most covid cases are reported from China"
+  )+
+  facet_wrap(~from.Wuhan)
+```
+
+
+
+What are the top 3 countries who report the most cases?
+
+```{r}
+ggplot(COVID19, aes(x = death_clean,
+                    fill = country)) +
+geom_histogram(alpha = 0.5) +
+labs ( x = "death",
+       y = "count",
+       title = "Distribution of COVID deaths by country",
+       fill = "country")
+```
+
+
