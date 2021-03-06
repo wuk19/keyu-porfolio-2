@@ -1,7 +1,6 @@
 ---
 title: "porfolio 2"
-name: "Keyu Wu”
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -9,6 +8,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ### 1. Load Dataset and Overview of data
+
+#for this porfolio, I aim to look at some Covid data.
 
 ```{r data}
 COVID19 <- read.csv("~/Desktop/R lab/keyu-porfolio-2/COVID19_line_list_data.csv")
@@ -25,9 +26,13 @@ glimpse(COVID19)
 
 ### 2. Are most cases reported from China？
 
+#due to the large population of China, and the fact that it experienced the first outbreak of covid, I wonder if most cases reported were from China.
+
 ```{r clean_up_data}
 COVID19$death_clean <- as.integer(COVID19$death != 0)
 ```
+
+#to do so, I filtered cases in China and cases not in China.
 
 ```{r china_cases}
 china_cases <- COVID19 %>% 
@@ -41,12 +46,14 @@ other_cases <- COVID19 %>%
 
 "as shown in the data, there are only 197 cases reported from China whereas there are 888 cases reported outside of China."
 
-```{r}
+#in order to present this research question visiaully, I used ggplot.
+
+```{r country_china}
 covid_china <- COVID19 %>% 
   mutate(country_china = if_else (country == "China", "China", "Other"))
 ```
 
-```{r}
+```{r china_plot}
 covid_china %>%
   ggplot(covid_china,
          mapping = aes(x= country_china)) +
@@ -57,35 +64,90 @@ covid_china %>%
   title = "whether most covid cases are reported from China"
   )
 ```
+"as shown in the graph, the majority of cases were not from China."
 
-### 3. 
+### 3. Are most cases reported in China originally from Wuhan？
 
-```{r}
+```{r wuhan_plot}
 china_cases %>%
   ggplot(china_cases,
          mapping = aes(x= country,
                        fill = from.Wuhan)) +
   geom_bar() +
   labs (
-  x = "country_china",
+  x = "cases in China",
   y = "count",
-  title = "whether most covid cases are reported from China"
+  title = "whether most covid cases in China are from Wuhan"
   )+
   facet_wrap(~from.Wuhan)
 ```
+"as shown in the diagram, covid cases not from wuhan ("0") were greater than cases from wuhan ("1"), suggesting that most covid cases in China were not from Wuhan."
 
+###4. What are the top 3 countries with most death cases?
 
+```{r death_cases}
+COVID19 %>% 
+  filter(death_clean > 0) %>% 
+  group_by(country) %>%
+  summarise(death_total = sum(death_clean)) %>%
+  ggplot(aes(country)) + 
+  geom_point(aes(y = death_total, color = "red")) +
+coord_flip()
+```
+"China seemed to have the largest death total, followed by South Korea and Japan."
 
-What are the top 3 countries who report the most cases?
+###5. What is the death rate in China?
 
-```{r}
-ggplot(COVID19, aes(x = death_clean,
-                    fill = country)) +
-geom_histogram(alpha = 0.5) +
-labs ( x = "death",
-       y = "count",
-       title = "Distribution of COVID deaths by country",
-       fill = "country")
+```{r china_death_rate}
+sum(china_cases$death_clean) / 197 #number of cases in china
 ```
 
+"the death rate in China is about 20%."
 
+###6. Which population is more likely to die in China?
+
+```{r death_population}
+dead = subset(china_cases, death_clean == 1)
+alive = subset(china_cases, death_clean == 0)
+mean(dead$age, na.rm = TRUE) #71.05
+mean(alive$age, na.rm = TRUE) #43.30
+```
+
+"the mean age for people who died from covid is 71.1 whereas the mean age for people who survived from covid is 43.3."
+
+```{r age_significant_test}
+t.test(dead$age, alive$age, alternative = "two.sided")
+```
+
+"the p value is basically 0, indicating that the mean age between people who died from covid and people who survived from covid is significantly different. Hence, elder population is more likely to die during covid in China than younger people "
+
+###7. Are there sex differences in the death rate of covid in China?
+
+```{r death_gender}
+men = subset(china_cases, gender == "male")
+women = subset(china_cases, gender == "female")
+mean(men$death_clean, na.rm = TRUE) #21.7%
+mean(women$death_clean, na.rm = TRUE) #16.4%
+```
+
+"The mean death rate for men (21.7%) is larger than the mean death rate for women (16.4%). I used ggplot below to visually present this information"
+
+```{r gender_plot}
+china_cases %>%
+  filter(death_clean > 0) %>%
+  ggplot(china_cases,
+         mapping = aes(x= death_clean,
+                       fill = gender)) +
+  geom_bar() +
+  labs (
+  x = "death cases in China",
+  y = "count",
+  title = "whether there are sex differences in deaths rate"
+  )+
+  facet_wrap(~gender)
+```
+```{r gender_signiifcant_test}
+t.test(men$death_clean, women$death_clean, alternative = "two.sided")
+```
+
+"the p value is 0.35, suggesting that there is no significant differences of death rates between men and women in China."
