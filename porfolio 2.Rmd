@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r data}
 COVID19 <- read.csv("~/Desktop/R lab/keyu-porfolio-2/COVID19_line_list_data.csv")
-View(COVID19)
 library(tidyverse)
 library(dplyr)
 ```
